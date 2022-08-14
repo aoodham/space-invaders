@@ -11,7 +11,8 @@ use crossterm::cursor::{Hide, Show};
 use crossterm::event::{self, Event, KeyCode};
 use space_invaders::frame::{self, Drawable};
 use space_invaders::render;
-use space_invaders::player;
+use space_invaders::player::Player;
+use space_invaders::invader::Invaders;
 
 fn setup_audio(audio: &mut Audio) {
     audio.add("explode", "sounds/explode.wav");
@@ -48,8 +49,9 @@ fn main() -> Result <(), Box<dyn Error>> {
 
     });
 
-    let mut player = player::Player::new();
+    let mut player = Player::new();
     let mut instant = Instant::now();
+    let mut invaders = Invaders::new();
     'gameloop: loop {
         let delta = instant.elapsed();
         instant = Instant::now();
@@ -75,9 +77,28 @@ fn main() -> Result <(), Box<dyn Error>> {
             }
         }
         player.update(delta);
-        player.draw(&mut curr_frame);
+        if invaders.update(delta) {
+            audio.play("move")
+        }
+        if player.detect_hits(&mut invaders) {
+            audio.play("explode")
+        }
+
+        let drawables: Vec<&dyn Drawable> = vec![&player, &invaders];
+        for drawable in drawables {
+            drawable.draw(&mut curr_frame)
+        }
         let _ = render_tx.send(curr_frame);
         thread::sleep(Duration::from_millis(1));
+
+        if invaders.all_killed() {
+            audio.play("win");
+            break 'gameloop
+        }
+        if invaders.at_bottom() {
+            audio.play("lose");
+            break 'gameloop
+        }
     }
 
     drop(render_tx);
