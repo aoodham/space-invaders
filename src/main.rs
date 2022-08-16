@@ -13,6 +13,7 @@ use space_invaders::frame::{self, Drawable};
 use space_invaders::render;
 use space_invaders::player::Player;
 use space_invaders::invader::Invaders;
+use space_invaders::scoreboard::Scoreboard;
 
 fn setup_audio(audio: &mut Audio) {
     audio.add("explode", "sounds/explode.wav");
@@ -52,6 +53,7 @@ fn main() -> Result <(), Box<dyn Error>> {
     let mut player = Player::new();
     let mut instant = Instant::now();
     let mut invaders = Invaders::new();
+    let mut scoreboard = Scoreboard::new();
     'gameloop: loop {
         let delta = instant.elapsed();
         instant = Instant::now();
@@ -81,10 +83,11 @@ fn main() -> Result <(), Box<dyn Error>> {
             audio.play("move")
         }
         if player.detect_hits(&mut invaders) {
-            audio.play("explode")
+            scoreboard.update(&player);
+            audio.play("explode");
         }
 
-        let drawables: Vec<&dyn Drawable> = vec![&player, &invaders];
+        let drawables: Vec<&dyn Drawable> = vec![&player, &invaders, &scoreboard];
         for drawable in drawables {
             drawable.draw(&mut curr_frame)
         }

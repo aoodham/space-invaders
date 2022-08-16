@@ -7,6 +7,7 @@ use crate::frame::{Drawable, Frame};
 pub struct Invader {
     pub x: usize,
     pub y: usize,
+    pub value: usize,
 }
 
 
@@ -22,7 +23,7 @@ impl Invaders {
         for x in 0..NUM_COLS {
             for y in 0..NUM_ROWS {
                 if ( x > 1) && (x < NUM_COLS - 2) && (y > 0) && (y < 9) && (x % 2 == 0) && (y % 2 == 0){
-                    army.push(Invader { x, y })
+                    army.push(Invader { x, y, value: 100 })
                 }
             }
         }
@@ -42,12 +43,12 @@ impl Invaders {
         max_y >= NUM_ROWS -1
     }
 
-    pub fn kill_invader_at(&mut self, x: usize, y: usize) -> bool {
+    pub fn kill_invader_at(&mut self, x: usize, y: usize) -> Option<Invader> {
         if let Some(idx) = self.army.iter().position(|invader| (invader.x == x) && (invader.y == y)) {
-            self.army.remove(idx);
-            true
+            let invader = self.army.remove(idx);
+            Some(invader)
         } else {
-            false
+            None
         }
     }
 
