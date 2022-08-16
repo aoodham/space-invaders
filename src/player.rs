@@ -7,7 +7,9 @@ use crate::invader::Invaders;
 pub struct Player {
     x: usize,
     y: usize,
-    shots: Vec<Shot>
+    shots: Vec<Shot>,
+    pub score: usize,
+        
 }
 
 impl Player {
@@ -16,6 +18,7 @@ impl Player {
             x: NUM_COLS / 2,
             y: NUM_ROWS - 1,
             shots: Vec::new(), 
+            score: 0,
         }
     }
 
@@ -51,10 +54,13 @@ impl Player {
         let mut hit_something = false;
         for shot in self.shots.iter_mut() {
             if !shot.exploding {
-                let hit = invaders.kill_invader_at(shot.x, shot.y);
-                if hit {
-                    shot.explode();
-                    hit_something = true;
+                match invaders.kill_invader_at(shot.x, shot.y) {
+                    Some(invader) => {
+                        shot.explode();
+                        hit_something = true;
+                        self.score += invader.value;
+                    },
+                    None => { }
                 }
             }
         }
